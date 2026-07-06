@@ -5,7 +5,6 @@ import * as U from "./util.js";
 import { default as getGGEventData } from "./dataGetters/gg.js";
 import { default as getChallongeEventData } from "./dataGetters/challonge.js";
 export function Client(clientOpts = {}) {
-    console.log("MK CLIENT V3!", { clientOpts });
     return GQL.Client("https://api.start.gg/gql/alpha", clientOpts);
 }
 export function getH2HData(source, client, opts = {}) {
