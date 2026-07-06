@@ -24,6 +24,7 @@
     "@dz-ssbm/gql": "github:npm-dz-ssbm/gql",
     "@dz-ssbm/sys": "github:npm-dz-ssbm/sys",
     "@dz-ssbm/util": "github:npm-dz-ssbm/util",
+    "graphql": "^17.0.2",
     "puppeteer": "^25.3.0",
     "whr": "^0.3.2"
   },
