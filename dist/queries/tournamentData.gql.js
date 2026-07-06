@@ -1,11 +1,11 @@
-query GetTournamentData($slug: String!, $pageE: Int!, $pageS: Int!) {
+export default `query GetTournamentData($slug: String!, $pageE: Int!, $pageS: Int!) {
   event(slug: $slug) {
     id
     numEntrants
     name
     slug
     state
-    standings(query: { page: $pageS, perPage: 8 }) {
+    standings(query: { page: $pageS, perPage: 32 }) {
       pageInfo {
         total
       }
@@ -18,7 +18,7 @@ query GetTournamentData($slug: String!, $pageE: Int!, $pageS: Int!) {
         }
       }
     }
-    entrants(query: { page: $pageE, perPage: 8 }) {
+    entrants(query: { page: $pageE, perPage: 32 }) {
       pageInfo {
         total
       }
@@ -65,6 +65,19 @@ query GetTournamentData($slug: String!, $pageE: Int!, $pageS: Int!) {
         phaseOrder
       }
       displayIdentifier
+      seeds(query: { page: 0, perPage: 512 }) {
+        pageInfo {
+          total
+        }
+        nodes {
+          groupSeedNum
+          entrant {
+            id
+          }
+        }
+      }
     }
   }
 }
+`;
+//# sourceMappingURL=tournamentData.gql.js.map

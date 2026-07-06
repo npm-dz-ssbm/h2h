@@ -1,4 +1,4 @@
-query GetSetsData($phaseGroupId: ID!, $page: Int!) {
+export default `query GetSetsData($phaseGroupId: ID!, $page: Int!) {
   phaseGroup(id: $phaseGroupId) {
     id
     bracketType
@@ -44,3 +44,4 @@ query GetSetsData($phaseGroupId: ID!, $page: Int!) {
     }
   }
 }
+`;

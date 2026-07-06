@@ -15,10 +15,9 @@ export function getH2HData(
   client: GQL.Client,
   opts: GQL.Opts = {},
 ): $.Xa<T.H2HEvent, T.H2HError> {
-  const getter =
-    source.bracketingSite === "challonge"
-      ? getChallongeEventData
-      : getGGEventData;
+  const getter = source.bracketingSite === "challonge"
+    ? getChallongeEventData
+    : getGGEventData;
   return getter(source.slug, client, opts);
 }
 
@@ -64,10 +63,9 @@ export function* getRankings(
       if (!set.doesCount) {
         continue;
       }
-      const [wPId, lPId] =
-        set.winnerId === set.slots[0]?.entrant?.id
-          ? [set.slots[0]?.playerId, set.slots[1]?.playerId]
-          : [set.slots[1]?.playerId, set.slots[0]?.playerId];
+      const [wPId, lPId] = set.winnerId === set.slots[0]?.entrant?.id
+        ? [set.slots[0]?.playerId, set.slots[1]?.playerId]
+        : [set.slots[1]?.playerId, set.slots[0]?.playerId];
       if (!set.doesCount || !wPId || !lPId) {
         continue;
       }

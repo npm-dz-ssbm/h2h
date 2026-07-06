@@ -11,16 +11,12 @@
     "dist"
   ],
   "scripts": {
-    "build:compile": "tsc",
-    "build:copy": "copyfiles -u 1 src/queries/* dist/",
-    "build": "run-s build:compile build:copy",
+    "build": "tsc",
     "test": "tsx --test"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
-    "copyfiles": "^2.4.1",
     "husky": "^9.1.7",
-    "npm-run-all": "^4.1.5",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3"
   },
