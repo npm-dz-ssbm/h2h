@@ -1,34 +1,37 @@
-import puppeteer, { Page, ElementHandle } from "puppeteer";
+import puppeteer, { ElementHandle, Page } from "puppeteer";
 import { fs, path } from "@dz-ssbm/sys";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import { type Client as GQLClient } from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
 
-const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
-  const { slug, client, opts } = yield* this.ask;
+function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
+  const { slug, client, opts } = yield* $.xAsk<
+    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
+  >();
   const fullOpts = Object.assign({}, client.baseOpts, opts);
   const cachePath = fullOpts.cachePath;
   const challongeId = `CHALLONGE-${slug}`;
-  const slugCachePath =
-    cachePath && path.join(cachePath, `${challongeId}.json`);
+  const slugCachePath = cachePath &&
+    path.join(cachePath, `${challongeId}.json`);
   if (
     slugCachePath &&
     fullOpts.networkControl !== GQL.NetworkControl.forceFetch
   ) {
-    const cached = yield* $.Xawait(
+    const cached = yield* $.xWait(
       () => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)),
       () => $.Ok(undefined),
     );
     if (cached) {
-      return yield* this.trying(
-        () => $.pure(T.H2HEvent.parse(cached)),
+      return yield* $.xTry(
+        () => $.xPure(T.H2HEvent.parse(cached)),
         (e) => $.Err(T.H2HError.ParseCached(e)),
       );
     }
   }
   if (fullOpts.networkControl === GQL.NetworkControl.cacheOnly) {
-    return yield* $.fail(T.H2HError.FetchError(GQL.Error.CacheOnlyEmpty));
+    return yield* $.xFail(T.H2HError.FetchError(GQL.Error.CacheOnlyEmpty));
   }
 
   function astralOp<R>(
@@ -36,26 +39,32 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     op: string,
     m: () => Promise<R>,
   ): T.H2HBuilder<R> {
-    return $.Xawait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
+    return $.xWait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
   }
 
   const userAgent =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
-  const browser = yield* astralOp("", "launch", () =>
-    puppeteer.launch({ args: [`--user-agent=${userAgent}`] }),
+  const browser = yield* astralOp(
+    "",
+    "launch",
+    () => puppeteer.launch({ args: [`--user-agent=${userAgent}`] }),
   );
   const pageUrl = `https://challonge.com/${slug}`;
   yield* $.xLog("opening Page...");
   const page = yield* astralOp("", "newPage", () => browser.newPage());
-  yield* $.Xawait(() => page.setViewport({ width: 1920, height: 1080 }));
+  yield* $.xWait(() => page.setViewport({ width: 1920, height: 1080 }));
   yield* $.xLog("navigating...");
-  yield* astralOp("", "load", () =>
-    page.goto(pageUrl, { waitUntil: "domcontentloaded" }),
+  yield* astralOp(
+    "",
+    "load",
+    () => page.goto(pageUrl, { waitUntil: "domcontentloaded" }),
   );
 
   function* waitForSelector(sel: string): T.H2HBuilder {
-    yield* astralOp(sel, "waitForSelector", () =>
-      page.waitForSelector(sel, { timeout: 120000 }),
+    yield* astralOp(
+      sel,
+      "waitForSelector",
+      () => page.waitForSelector(sel, { timeout: 120000 }),
     );
   }
 
@@ -81,8 +90,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
       el
         .$(sel)
         .then((l) => l!.getProperty("innerText"))
-        .then((prop) => prop.jsonValue()),
-    );
+        .then((prop) => prop.jsonValue()));
   }
 
   function* innerHtml(
@@ -90,8 +98,9 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     arg2?: ElementHandle,
   ): T.H2HBuilder<string> {
     const sel: string = typeof arg1 === "string" ? arg1 : "";
-    const selHandle: Promise<ElementHandle | null> =
-      typeof arg1 !== "string" ? Promise.resolve(arg1) : (arg2 || page).$(sel);
+    const selHandle: Promise<ElementHandle | null> = typeof arg1 !== "string"
+      ? Promise.resolve(arg1)
+      : (arg2 || page).$(sel);
     return yield* astralOp(sel, "innerHtml", () =>
       selHandle
         .then((l) => l!.getProperty("innerHTML"))
@@ -101,8 +110,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
             return s;
           }
           throw `Non-string: [ ${s} ]`;
-        }),
-    );
+        }));
   }
 
   function* getAttribute(
@@ -112,8 +120,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     return yield* astralOp(attribute, "getAttribute", () =>
       el
         .evaluate((e: any, at: string) => e.getAttribute(at), attribute)
-        .then((l) => l!),
-    );
+        .then((l) => l!));
   }
 
   yield* $.xLog("wait for sel :: config");
@@ -138,21 +145,20 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     const itemText = yield* innerText(".text", el);
     if (itemLabel === "Start Time" || itemLabel === "Start") {
       const [mStr = "", dStr = "", yStr = ""] = itemText.split(" ");
-      const month =
-        {
-          January: 0,
-          February: 1,
-          March: 2,
-          April: 3,
-          May: 4,
-          June: 5,
-          July: 6,
-          August: 7,
-          September: 8,
-          October: 9,
-          November: 10,
-          December: 11,
-        }[mStr] || 0;
+      const month = {
+        January: 0,
+        February: 1,
+        March: 2,
+        April: 3,
+        May: 4,
+        June: 5,
+        July: 6,
+        August: 7,
+        September: 8,
+        October: 9,
+        November: 10,
+        December: 11,
+      }[mStr] || 0;
       const day = parseInt(dStr.split(",")[0] || "");
       const year = parseInt(yStr);
       const date = Math.floor(new Date(year, month, day, 12).valueOf() / 1000);
@@ -166,8 +172,8 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     }
   }
 
-  const name = yield* $.ok(nameRes);
-  const date = yield* $.ok(dateRes);
+  const name = yield* $.xOk(nameRes);
+  const date = yield* $.xOk(dateRes);
   console.log({ name, date });
 
   const tournamentName = yield* innerText(".title #title");
@@ -209,7 +215,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
         scoreClass.split(" ").forEach((classPart) => {
           set.winnerId ||= classPart !== "-winner" ? undefined : entrantId;
         });
-        const score = yield* this.trying(
+        const score = yield* $.xTry(
           function* () {
             const scoreS = yield* innerHtml(scoreEl);
             const scoreN = parseInt(scoreS);
@@ -259,14 +265,14 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
   const sets = $.mapValues(baseSets, (baseSet) => {
     const isGrands: boolean = Boolean(
       (!lastSet && isDE) ||
-      (wasGrands && slotsKey(baseSet) === slotsKey(lastSet)),
+        (wasGrands && slotsKey(baseSet) === slotsKey(lastSet)),
     );
     if (lastSet && isGrands && wasGrands) {
       lastSet.isLosers = true;
     }
     const slots = baseSet.slots || [];
     slots.forEach((slot) =>
-      (isGrands ? gfEntrants : nonGfEntrants).add(slotEntrantId(slot)),
+      (isGrands ? gfEntrants : nonGfEntrants).add(slotEntrantId(slot))
     );
     let seenAllGFEntrants = true;
     gfEntrants.forEach((e) => (seenAllGFEntrants &&= nonGfEntrants.has(e)));
@@ -282,9 +288,11 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
     const slotScore = (slot: T.H2HSlot) =>
       slot.score === undefined ? "" : `${slotName(slot)} ${slot.score}`;
     slots.forEach(
-      (slot) =>
-        (slot.displayScore =
-          slot.score === undefined ? undefined : `${slot.score}`),
+      (
+        slot,
+      ) => (slot.displayScore = slot.score === undefined
+        ? undefined
+        : `${slot.score}`),
     );
     slots.forEach(
       (slot) => (slot.playerId = entrants[slotEntrantId(slot)]?.player.id),
@@ -422,7 +430,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.X(function* () {
       },
     ],
   };
-});
+}
 
 const getEventData: T.GetFn = function* (...args) {
   const res = yield* U.adaptBuilder(getEventDataImpl)(...args);
@@ -430,7 +438,7 @@ const getEventData: T.GetFn = function* (...args) {
   const cachePath = fullOpts.cachePath;
   if (cachePath && res.state === "COMPLETED") {
     const cacheFilePath = path.join(cachePath, `${res.id}.json`);
-    yield* $.Xawait(
+    yield* $.xWait(
       () => fs.writeFilep(cacheFilePath, JSON.stringify(res)),
       (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))),
     );

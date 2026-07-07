@@ -1,9 +1,10 @@
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import type * as GQLT from "@dz-ssbm/gql/T";
 import type * as T from "./types.js";
-export declare function Client(clientOpts?: GQL.ClientOpts): GQL.Client;
-export declare function getH2HData(source: T.H2HEventSource, client: GQL.Client, opts?: GQL.Opts): $.Xa<T.H2HEvent, T.H2HError>;
-export declare function getRankings(sources: T.H2HEventSource[], client: GQL.Client, opts?: GQL.Opts): $.Xa<T.H2HRank[], T.H2HError>;
+export declare function Client(clientOpts?: GQL.ClientOpts): GQLT.Client;
+export declare function getH2HData(source: T.H2HEventSource, client: GQLT.Client, opts?: GQL.Opts): $.Xa<T.H2HEvent, T.H2HError>;
+export declare function getRankings(sources: T.H2HEventSource[], client: GQLT.Client, opts?: GQL.Opts): $.Xa<T.H2HRank[], T.H2HError>;
 export declare const Source: {
     startgg: (slug: string) => T.H2HEventSource;
     challonge: (slug: string) => T.H2HEventSource;

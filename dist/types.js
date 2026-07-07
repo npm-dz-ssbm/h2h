@@ -1,5 +1,5 @@
 import * as $ from "@dz-ssbm/util";
-import * as GQL from "@dz-ssbm/gql";
+import * as GQL from "@dz-ssbm/gql/T";
 export const H2HError = $.T.defVariant("@dz-ssbm/h2h|H2HError", {
     FetchError: GQL.Error.zodType,
     AstralError: $.T.object({ sel: $.T.string(), op: $.T.string() }),

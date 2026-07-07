@@ -1,34 +1,36 @@
-import puppeteer, { Page, ElementHandle } from "puppeteer";
+import puppeteer, { ElementHandle, Page } from "puppeteer";
 import { fs, path } from "@dz-ssbm/sys";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import {} from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
-const getEventDataImpl = $.X(function* () {
-    const { slug, client, opts } = yield* this.ask;
+function* getEventDataImpl() {
+    const { slug, client, opts } = yield* $.xAsk();
     const fullOpts = Object.assign({}, client.baseOpts, opts);
     const cachePath = fullOpts.cachePath;
     const challongeId = `CHALLONGE-${slug}`;
-    const slugCachePath = cachePath && path.join(cachePath, `${challongeId}.json`);
+    const slugCachePath = cachePath &&
+        path.join(cachePath, `${challongeId}.json`);
     if (slugCachePath &&
         fullOpts.networkControl !== GQL.NetworkControl.forceFetch) {
-        const cached = yield* $.Xawait(() => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)), () => $.Ok(undefined));
+        const cached = yield* $.xWait(() => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)), () => $.Ok(undefined));
         if (cached) {
-            return yield* this.trying(() => $.pure(T.H2HEvent.parse(cached)), (e) => $.Err(T.H2HError.ParseCached(e)));
+            return yield* $.xTry(() => $.xPure(T.H2HEvent.parse(cached)), (e) => $.Err(T.H2HError.ParseCached(e)));
         }
     }
     if (fullOpts.networkControl === GQL.NetworkControl.cacheOnly) {
-        return yield* $.fail(T.H2HError.FetchError(GQL.Error.CacheOnlyEmpty));
+        return yield* $.xFail(T.H2HError.FetchError(GQL.Error.CacheOnlyEmpty));
     }
     function astralOp(sel, op, m) {
-        return $.Xawait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
+        return $.xWait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
     }
     const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
     const browser = yield* astralOp("", "launch", () => puppeteer.launch({ args: [`--user-agent=${userAgent}`] }));
     const pageUrl = `https://challonge.com/${slug}`;
     yield* $.xLog("opening Page...");
     const page = yield* astralOp("", "newPage", () => browser.newPage());
-    yield* $.Xawait(() => page.setViewport({ width: 1920, height: 1080 }));
+    yield* $.xWait(() => page.setViewport({ width: 1920, height: 1080 }));
     yield* $.xLog("navigating...");
     yield* astralOp("", "load", () => page.goto(pageUrl, { waitUntil: "domcontentloaded" }));
     function* waitForSelector(sel) {
@@ -48,7 +50,9 @@ const getEventDataImpl = $.X(function* () {
     }
     function* innerHtml(arg1, arg2) {
         const sel = typeof arg1 === "string" ? arg1 : "";
-        const selHandle = typeof arg1 !== "string" ? Promise.resolve(arg1) : (arg2 || page).$(sel);
+        const selHandle = typeof arg1 !== "string"
+            ? Promise.resolve(arg1)
+            : (arg2 || page).$(sel);
         return yield* astralOp(sel, "innerHtml", () => selHandle
             .then((l) => l.getProperty("innerHTML"))
             .then((prop) => prop.jsonValue())
@@ -106,8 +110,8 @@ const getEventDataImpl = $.X(function* () {
             isDE = itemText === "Double Elimination";
         }
     }
-    const name = yield* $.ok(nameRes);
-    const date = yield* $.ok(dateRes);
+    const name = yield* $.xOk(nameRes);
+    const date = yield* $.xOk(dateRes);
     console.log({ name, date });
     const tournamentName = yield* innerText(".title #title");
     const bracketEls = yield* $$(".bracket-svg");
@@ -145,7 +149,7 @@ const getEventDataImpl = $.X(function* () {
                 scoreClass.split(" ").forEach((classPart) => {
                     set.winnerId ||= classPart !== "-winner" ? undefined : entrantId;
                 });
-                const score = yield* this.trying(function* () {
+                const score = yield* $.xTry(function* () {
                     const scoreS = yield* innerHtml(scoreEl);
                     const scoreN = parseInt(scoreS);
                     return Number.isNaN(scoreN) ? undefined : scoreN;
@@ -202,8 +206,9 @@ const getEventDataImpl = $.X(function* () {
         }
         const slotName = (slot) => entrants[slotEntrantId(slot)]?.participants[0]?.name;
         const slotScore = (slot) => slot.score === undefined ? "" : `${slotName(slot)} ${slot.score}`;
-        slots.forEach((slot) => (slot.displayScore =
-            slot.score === undefined ? undefined : `${slot.score}`));
+        slots.forEach((slot) => (slot.displayScore = slot.score === undefined
+            ? undefined
+            : `${slot.score}`));
         slots.forEach((slot) => (slot.playerId = entrants[slotEntrantId(slot)]?.player.id));
         const fullSet = {
             ...baseSet,
@@ -331,14 +336,14 @@ const getEventDataImpl = $.X(function* () {
             },
         ],
     };
-});
+}
 const getEventData = function* (...args) {
     const res = yield* U.adaptBuilder(getEventDataImpl)(...args);
     const fullOpts = { ...args[1].baseOpts, ...(args[2] || {}) };
     const cachePath = fullOpts.cachePath;
     if (cachePath && res.state === "COMPLETED") {
         const cacheFilePath = path.join(cachePath, `${res.id}.json`);
-        yield* $.Xawait(() => fs.writeFilep(cacheFilePath, JSON.stringify(res)), (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))));
+        yield* $.xWait(() => fs.writeFilep(cacheFilePath, JSON.stringify(res)), (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))));
     }
     return res;
 };

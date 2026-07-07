@@ -1,33 +1,33 @@
 import { WholeHistoryRating } from "whr";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import type * as GQLT from "@dz-ssbm/gql/T";
 import type * as T from "./types.js";
 import * as U from "./util.js";
 import { default as getGGEventData } from "./dataGetters/gg.js";
 import { default as getChallongeEventData } from "./dataGetters/challonge.js";
 
-export function Client(clientOpts: GQL.ClientOpts = {}): GQL.Client {
+export function Client(clientOpts: GQL.ClientOpts = {}): GQLT.Client {
   return GQL.Client("https://api.start.gg/gql/alpha", clientOpts);
 }
 
 export function getH2HData(
   source: T.H2HEventSource,
-  client: GQL.Client,
+  client: GQLT.Client,
   opts: GQL.Opts = {},
 ): $.Xa<T.H2HEvent, T.H2HError> {
-  const getter =
-    source.bracketingSite === "challonge"
-      ? getChallongeEventData
-      : getGGEventData;
+  const getter = source.bracketingSite === "challonge"
+    ? getChallongeEventData
+    : getGGEventData;
   return getter(source.slug, client, opts);
 }
 
 export function* getRankings(
   sources: T.H2HEventSource[],
-  client: GQL.Client,
+  client: GQLT.Client,
   opts: GQL.Opts = {},
 ): $.Xa<T.H2HRank[], T.H2HError> {
-  const events = yield* $.mapping(sources, (s) => getH2HData(s, client, opts));
+  const events = yield* $.xMap(sources, (s) => getH2HData(s, client, opts));
   events.sort((e1, e2) => e1.date - e2.date);
   const setGroups: T.H2HSet[][] = [];
   const ranksByPlayerId: Record<string | number, T.H2HRank> = {};
@@ -64,10 +64,9 @@ export function* getRankings(
       if (!set.doesCount) {
         continue;
       }
-      const [wPId, lPId] =
-        set.winnerId === set.slots[0]?.entrant?.id
-          ? [set.slots[0]?.playerId, set.slots[1]?.playerId]
-          : [set.slots[1]?.playerId, set.slots[0]?.playerId];
+      const [wPId, lPId] = set.winnerId === set.slots[0]?.entrant?.id
+        ? [set.slots[0]?.playerId, set.slots[1]?.playerId]
+        : [set.slots[1]?.playerId, set.slots[0]?.playerId];
       if (!set.doesCount || !wPId || !lPId) {
         continue;
       }

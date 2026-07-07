@@ -14,7 +14,7 @@ export function getH2HData(source, client, opts = {}) {
     return getter(source.slug, client, opts);
 }
 export function* getRankings(sources, client, opts = {}) {
-    const events = yield* $.mapping(sources, (s) => getH2HData(s, client, opts));
+    const events = yield* $.xMap(sources, (s) => getH2HData(s, client, opts));
     events.sort((e1, e2) => e1.date - e2.date);
     const setGroups = [];
     const ranksByPlayerId = {};

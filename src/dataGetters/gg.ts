@@ -1,38 +1,39 @@
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import { type Client as GQLClient } from "@dz-ssbm/gql/T";
 import * as Q from "../queries.js";
 import * as T from "../types.js";
 import * as U from "../util.js";
 
-const getBaseGGEventData: () => T.H2HBuilder<Q.TourneyOpData> = $.X(
-  function* () {
-    const { slug, client, opts } = yield* this.ask;
-    function getEventData(op: Q.TourneyOp, nwc?: GQL.NetworkControl) {
-      const fullOpts = { ...opts, networkControl: nwc || opts.networkControl };
-      const pageSpecs = {
-        pageE: (d: Q.TourneyOpData) => d.event.entrants,
-        pageS: (d: Q.TourneyOpData) => d.event.standings,
-      };
-      return () => U.ggQueryAll(client, op, { slug }, pageSpecs, fullOpts);
-    }
-    return yield* $.firstOk(
-      getEventData(Q.tourneyOp, GQL.NetworkControl.cacheOnly),
-      getEventData(Q.tourneyOpSmall, GQL.NetworkControl.cacheOnly),
-      getEventData(Q.tourneyOp),
-      getEventData(Q.tourneyOpSmall),
-    );
-  },
-);
+function* getBaseGGEventData(): T.H2HBuilder<Q.TourneyOpData> {
+  const { slug, client, opts } = yield* $.xAsk<
+    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
+  >();
+  function getEventData(op: Q.TourneyOp, nwc?: GQL.NetworkControl) {
+    const fullOpts = { ...opts, networkControl: nwc || opts.networkControl };
+    const pageSpecs = {
+      pageE: (d: Q.TourneyOpData) => d.event.entrants,
+      pageS: (d: Q.TourneyOpData) => d.event.standings,
+    };
+    return () => U.ggQueryAll(client, op, { slug }, pageSpecs, fullOpts);
+  }
+  return yield* $.xFirst(
+    getEventData(Q.tourneyOp, GQL.NetworkControl.cacheOnly),
+    getEventData(Q.tourneyOpSmall, GQL.NetworkControl.cacheOnly),
+    getEventData(Q.tourneyOp),
+    getEventData(Q.tourneyOpSmall),
+  );
+}
 
-const getSetsData: (id: number) => T.H2HBuilder<Q.SetsOpData["phaseGroup"]> =
-  $.X(function* (id) {
-    const { client, opts } = yield* this.ask;
-    const pageSpecs = { page: (d: Q.SetsOpData) => d.phaseGroup.sets };
-    const vars = { phaseGroupId: id };
-    const data = yield* U.ggQueryAll(client, Q.setsOp, vars, pageSpecs, opts);
-    return data.phaseGroup;
-  });
-
+function* getSetsData(id: number): T.H2HBuilder<Q.SetsOpData["phaseGroup"]> {
+  const { client, opts } = yield* $.xAsk<
+    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
+  >();
+  const pageSpecs = { page: (d: Q.SetsOpData) => d.phaseGroup.sets };
+  const vars = { phaseGroupId: id };
+  const data = yield* U.ggQueryAll(client, Q.setsOp, vars, pageSpecs, opts);
+  return data.phaseGroup;
+}
 function* getGGEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
   const { event } = yield* getBaseGGEventData();
 

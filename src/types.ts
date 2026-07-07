@@ -1,5 +1,5 @@
 import * as $ from "@dz-ssbm/util";
-import * as GQL from "@dz-ssbm/gql";
+import * as GQL from "@dz-ssbm/gql/T";
 
 export const H2HError: $.T.VariantDef<
   "@dz-ssbm/h2h|H2HError",
@@ -340,12 +340,10 @@ export type GGHasPageNodes = {
   nodes: { id: number }[];
 };
 
-export type H2HBuilder<Res = void> = $.Reads<
-  { client: GQL.Client; opts: GQL.Opts; slug: string },
-  $.Xa<
-    Res,
-    H2HError
-  >
+export type H2HBuilder<Res = void> = $.Xa<
+  Res,
+  H2HError,
+  { reads: { client: GQL.Client; opts: GQL.Opts; slug: string } }
 >;
 
 export type GetFn = (

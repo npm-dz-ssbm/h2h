@@ -1,6 +1,5 @@
 import * as $ from "@dz-ssbm/util";
-import * as GQL from "@dz-ssbm/gql";
-export declare const setsOp: GQL.Operation<{
+export declare const setsOp: import("@dz-ssbm/gql/T").Operation<{
     page: number;
     phaseGroupId: number;
 }, {
@@ -48,7 +47,7 @@ export declare const setsOp: GQL.Operation<{
         };
     };
 }>;
-export declare const tourneyOp: GQL.Operation<{
+export declare const tourneyOp: import("@dz-ssbm/gql/T").Operation<{
     pageE: number;
     pageS: number;
     slug: string;
@@ -122,7 +121,7 @@ export declare const tourneyOp: GQL.Operation<{
         }[];
     };
 }>;
-export declare const tourneyOpSmall: GQL.Operation<{
+export declare const tourneyOpSmall: import("@dz-ssbm/gql/T").Operation<{
     pageE: number;
     pageS: number;
     slug: string;

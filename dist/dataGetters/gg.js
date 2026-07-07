@@ -1,10 +1,11 @@
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
+import {} from "@dz-ssbm/gql/T";
 import * as Q from "../queries.js";
 import * as T from "../types.js";
 import * as U from "../util.js";
-const getBaseGGEventData = $.X(function* () {
-    const { slug, client, opts } = yield* this.ask;
+function* getBaseGGEventData() {
+    const { slug, client, opts } = yield* $.xAsk();
     function getEventData(op, nwc) {
         const fullOpts = { ...opts, networkControl: nwc || opts.networkControl };
         const pageSpecs = {
@@ -13,15 +14,15 @@ const getBaseGGEventData = $.X(function* () {
         };
         return () => U.ggQueryAll(client, op, { slug }, pageSpecs, fullOpts);
     }
-    return yield* $.firstOk(getEventData(Q.tourneyOp, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOpSmall, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOp), getEventData(Q.tourneyOpSmall));
-});
-const getSetsData = $.X(function* (id) {
-    const { client, opts } = yield* this.ask;
+    return yield* $.xFirst(getEventData(Q.tourneyOp, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOpSmall, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOp), getEventData(Q.tourneyOpSmall));
+}
+function* getSetsData(id) {
+    const { client, opts } = yield* $.xAsk();
     const pageSpecs = { page: (d) => d.phaseGroup.sets };
     const vars = { phaseGroupId: id };
     const data = yield* U.ggQueryAll(client, Q.setsOp, vars, pageSpecs, opts);
     return data.phaseGroup;
-});
+}
 function* getGGEventDataImpl() {
     const { event } = yield* getBaseGGEventData();
     const entrants = {};
