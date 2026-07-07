@@ -5,7 +5,9 @@ import * as Q from "../queries.js";
 import * as T from "../types.js";
 import * as U from "../util.js";
 function* getBaseGGEventData() {
-    const { slug, client, opts } = yield* $.xAsk();
+    const client = yield* $.xRead("client");
+    const opts = yield* $.xRead("opts");
+    const slug = yield* $.xRead("slug");
     function getEventData(op, nwc) {
         const fullOpts = { ...opts, networkControl: nwc || opts.networkControl };
         const pageSpecs = {
@@ -17,7 +19,8 @@ function* getBaseGGEventData() {
     return yield* $.xFirst(getEventData(Q.tourneyOp, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOpSmall, GQL.NetworkControl.cacheOnly), getEventData(Q.tourneyOp), getEventData(Q.tourneyOpSmall));
 }
 function* getSetsData(id) {
-    const { client, opts } = yield* $.xAsk();
+    const client = yield* $.xRead("client");
+    const opts = yield* $.xRead("opts");
     const pageSpecs = { page: (d) => d.phaseGroup.sets };
     const vars = { phaseGroupId: id };
     const data = yield* U.ggQueryAll(client, Q.setsOp, vars, pageSpecs, opts);

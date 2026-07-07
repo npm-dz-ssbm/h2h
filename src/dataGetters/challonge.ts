@@ -7,9 +7,9 @@ import * as T from "../types.js";
 import * as U from "../util.js";
 
 function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
-  const { slug, client, opts } = yield* $.xAsk<
-    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
-  >();
+  const client = yield* $.xRead("client");
+  const opts = yield* $.xRead("opts");
+  const slug = yield* $.xRead("slug");
   const fullOpts = Object.assign({}, client.baseOpts, opts);
   const cachePath = fullOpts.cachePath;
   const challongeId = `CHALLONGE-${slug}`;

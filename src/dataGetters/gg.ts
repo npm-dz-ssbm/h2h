@@ -6,9 +6,9 @@ import * as T from "../types.js";
 import * as U from "../util.js";
 
 function* getBaseGGEventData(): T.H2HBuilder<Q.TourneyOpData> {
-  const { slug, client, opts } = yield* $.xAsk<
-    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
-  >();
+  const client = yield* $.xRead("client");
+  const opts = yield* $.xRead("opts");
+  const slug = yield* $.xRead("slug");
   function getEventData(op: Q.TourneyOp, nwc?: GQL.NetworkControl) {
     const fullOpts = { ...opts, networkControl: nwc || opts.networkControl };
     const pageSpecs = {
@@ -26,9 +26,8 @@ function* getBaseGGEventData(): T.H2HBuilder<Q.TourneyOpData> {
 }
 
 function* getSetsData(id: number): T.H2HBuilder<Q.SetsOpData["phaseGroup"]> {
-  const { client, opts } = yield* $.xAsk<
-    { reads: { slug: string; client: GQLClient; opts: GQL.Opts } }
-  >();
+  const client = yield* $.xRead("client");
+  const opts = yield* $.xRead("opts");
   const pageSpecs = { page: (d: Q.SetsOpData) => d.phaseGroup.sets };
   const vars = { phaseGroupId: id };
   const data = yield* U.ggQueryAll(client, Q.setsOp, vars, pageSpecs, opts);

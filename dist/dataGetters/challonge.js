@@ -6,7 +6,9 @@ import {} from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
 function* getEventDataImpl() {
-    const { slug, client, opts } = yield* $.xAsk();
+    const client = yield* $.xRead("client");
+    const opts = yield* $.xRead("opts");
+    const slug = yield* $.xRead("slug");
     const fullOpts = Object.assign({}, client.baseOpts, opts);
     const cachePath = fullOpts.cachePath;
     const challongeId = `CHALLONGE-${slug}`;
