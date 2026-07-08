@@ -6,20 +6,18 @@ import { type Client as GQLClient } from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
 
-function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
-  const client = yield* $.xRead("client");
-  const opts = yield* $.xRead("opts");
-  const slug = yield* $.xRead("slug");
+const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
+  const { client, opts, slug } = yield* this.ask;
   const fullOpts = Object.assign({}, client.baseOpts, opts);
   const cachePath = fullOpts.cachePath;
   const challongeId = `CHALLONGE-${slug}`;
-  const slugCachePath = cachePath &&
-    path.join(cachePath, `${challongeId}.json`);
+  const slugCachePath =
+    cachePath && path.join(cachePath, `${challongeId}.json`);
   if (
     slugCachePath &&
     fullOpts.networkControl !== GQL.NetworkControl.forceFetch
   ) {
-    const cached = yield* $.xWait(
+    const cached = yield* $.xAwait(
       () => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)),
       () => $.Ok(undefined),
     );
@@ -39,32 +37,26 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
     op: string,
     m: () => Promise<R>,
   ): T.H2HBuilder<R> {
-    return $.xWait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
+    return $.xAwait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
   }
 
   const userAgent =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
-  const browser = yield* astralOp(
-    "",
-    "launch",
-    () => puppeteer.launch({ args: [`--user-agent=${userAgent}`] }),
+  const browser = yield* astralOp("", "launch", () =>
+    puppeteer.launch({ args: [`--user-agent=${userAgent}`] }),
   );
   const pageUrl = `https://challonge.com/${slug}`;
-  yield* $.xLog("opening Page...");
+  yield* this.logInfo("opening Page...");
   const page = yield* astralOp("", "newPage", () => browser.newPage());
-  yield* $.xWait(() => page.setViewport({ width: 1920, height: 1080 }));
-  yield* $.xLog("navigating...");
-  yield* astralOp(
-    "",
-    "load",
-    () => page.goto(pageUrl, { waitUntil: "domcontentloaded" }),
+  yield* $.xAwait(() => page.setViewport({ width: 1920, height: 1080 }));
+  yield* this.logInfo("navigating...");
+  yield* astralOp("", "load", () =>
+    page.goto(pageUrl, { waitUntil: "domcontentloaded" }),
   );
 
   function* waitForSelector(sel: string): T.H2HBuilder {
-    yield* astralOp(
-      sel,
-      "waitForSelector",
-      () => page.waitForSelector(sel, { timeout: 120000 }),
+    yield* astralOp(sel, "waitForSelector", () =>
+      page.waitForSelector(sel, { timeout: 120000 }),
     );
   }
 
@@ -90,7 +82,8 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
       el
         .$(sel)
         .then((l) => l!.getProperty("innerText"))
-        .then((prop) => prop.jsonValue()));
+        .then((prop) => prop.jsonValue()),
+    );
   }
 
   function* innerHtml(
@@ -98,9 +91,8 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
     arg2?: ElementHandle,
   ): T.H2HBuilder<string> {
     const sel: string = typeof arg1 === "string" ? arg1 : "";
-    const selHandle: Promise<ElementHandle | null> = typeof arg1 !== "string"
-      ? Promise.resolve(arg1)
-      : (arg2 || page).$(sel);
+    const selHandle: Promise<ElementHandle | null> =
+      typeof arg1 !== "string" ? Promise.resolve(arg1) : (arg2 || page).$(sel);
     return yield* astralOp(sel, "innerHtml", () =>
       selHandle
         .then((l) => l!.getProperty("innerHTML"))
@@ -110,7 +102,8 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
             return s;
           }
           throw `Non-string: [ ${s} ]`;
-        }));
+        }),
+    );
   }
 
   function* getAttribute(
@@ -120,16 +113,17 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
     return yield* astralOp(attribute, "getAttribute", () =>
       el
         .evaluate((e: any, at: string) => e.getAttribute(at), attribute)
-        .then((l) => l!));
+        .then((l) => l!),
+    );
   }
 
-  yield* $.xLog("wait for sel :: config");
+  yield* this.logInfo("wait for sel :: config");
   yield* waitForSelector(".redesigned-meta-list .item .text");
-  yield* $.xLog("wait for sel :: title");
+  yield* this.logInfo("wait for sel :: title");
   yield* waitForSelector(".title #title");
-  yield* $.xLog("wait for sel :: match-player");
+  yield* this.logInfo("wait for sel :: match-player");
   yield* waitForSelector(".bracket-svg .match .match--player");
-  yield* $.xLog("extract data");
+  yield* this.logInfo("extract data");
 
   let isDE: boolean = false;
   let nameRes: $.Result<string, T.H2HError> = $.Err(
@@ -145,20 +139,21 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
     const itemText = yield* innerText(".text", el);
     if (itemLabel === "Start Time" || itemLabel === "Start") {
       const [mStr = "", dStr = "", yStr = ""] = itemText.split(" ");
-      const month = {
-        January: 0,
-        February: 1,
-        March: 2,
-        April: 3,
-        May: 4,
-        June: 5,
-        July: 6,
-        August: 7,
-        September: 8,
-        October: 9,
-        November: 10,
-        December: 11,
-      }[mStr] || 0;
+      const month =
+        {
+          January: 0,
+          February: 1,
+          March: 2,
+          April: 3,
+          May: 4,
+          June: 5,
+          July: 6,
+          August: 7,
+          September: 8,
+          October: 9,
+          November: 10,
+          December: 11,
+        }[mStr] || 0;
       const day = parseInt(dStr.split(",")[0] || "");
       const year = parseInt(yStr);
       const date = Math.floor(new Date(year, month, day, 12).valueOf() / 1000);
@@ -265,14 +260,14 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
   const sets = $.mapValues(baseSets, (baseSet) => {
     const isGrands: boolean = Boolean(
       (!lastSet && isDE) ||
-        (wasGrands && slotsKey(baseSet) === slotsKey(lastSet)),
+      (wasGrands && slotsKey(baseSet) === slotsKey(lastSet)),
     );
     if (lastSet && isGrands && wasGrands) {
       lastSet.isLosers = true;
     }
     const slots = baseSet.slots || [];
     slots.forEach((slot) =>
-      (isGrands ? gfEntrants : nonGfEntrants).add(slotEntrantId(slot))
+      (isGrands ? gfEntrants : nonGfEntrants).add(slotEntrantId(slot)),
     );
     let seenAllGFEntrants = true;
     gfEntrants.forEach((e) => (seenAllGFEntrants &&= nonGfEntrants.has(e)));
@@ -288,11 +283,9 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
     const slotScore = (slot: T.H2HSlot) =>
       slot.score === undefined ? "" : `${slotName(slot)} ${slot.score}`;
     slots.forEach(
-      (
-        slot,
-      ) => (slot.displayScore = slot.score === undefined
-        ? undefined
-        : `${slot.score}`),
+      (slot) =>
+        (slot.displayScore =
+          slot.score === undefined ? undefined : `${slot.score}`),
     );
     slots.forEach(
       (slot) => (slot.playerId = entrants[slotEntrantId(slot)]?.player.id),
@@ -430,7 +423,7 @@ function* getEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
       },
     ],
   };
-}
+});
 
 const getEventData: T.GetFn = function* (...args) {
   const res = yield* U.adaptBuilder(getEventDataImpl)(...args);
@@ -438,7 +431,7 @@ const getEventData: T.GetFn = function* (...args) {
   const cachePath = fullOpts.cachePath;
   if (cachePath && res.state === "COMPLETED") {
     const cacheFilePath = path.join(cachePath, `${res.id}.json`);
-    yield* $.xWait(
+    yield* $.xAwait(
       () => fs.writeFilep(cacheFilePath, JSON.stringify(res)),
       (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))),
     );

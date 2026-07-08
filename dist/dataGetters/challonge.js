@@ -5,18 +5,15 @@ import * as GQL from "@dz-ssbm/gql";
 import {} from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
-function* getEventDataImpl() {
-    const client = yield* $.xRead("client");
-    const opts = yield* $.xRead("opts");
-    const slug = yield* $.xRead("slug");
+const getEventDataImpl = $.FnX(function* () {
+    const { client, opts, slug } = yield* this.ask;
     const fullOpts = Object.assign({}, client.baseOpts, opts);
     const cachePath = fullOpts.cachePath;
     const challongeId = `CHALLONGE-${slug}`;
-    const slugCachePath = cachePath &&
-        path.join(cachePath, `${challongeId}.json`);
+    const slugCachePath = cachePath && path.join(cachePath, `${challongeId}.json`);
     if (slugCachePath &&
         fullOpts.networkControl !== GQL.NetworkControl.forceFetch) {
-        const cached = yield* $.xWait(() => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)), () => $.Ok(undefined));
+        const cached = yield* $.xAwait(() => fs.readTextFile(slugCachePath).then((s) => JSON.parse(s)), () => $.Ok(undefined));
         if (cached) {
             return yield* $.xTry(() => $.xPure(T.H2HEvent.parse(cached)), (e) => $.Err(T.H2HError.ParseCached(e)));
         }
@@ -25,15 +22,15 @@ function* getEventDataImpl() {
         return yield* $.xFail(T.H2HError.FetchError(GQL.Error.CacheOnlyEmpty));
     }
     function astralOp(sel, op, m) {
-        return $.xWait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
+        return $.xAwait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
     }
     const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
     const browser = yield* astralOp("", "launch", () => puppeteer.launch({ args: [`--user-agent=${userAgent}`] }));
     const pageUrl = `https://challonge.com/${slug}`;
-    yield* $.xLog("opening Page...");
+    yield* this.logInfo("opening Page...");
     const page = yield* astralOp("", "newPage", () => browser.newPage());
-    yield* $.xWait(() => page.setViewport({ width: 1920, height: 1080 }));
-    yield* $.xLog("navigating...");
+    yield* $.xAwait(() => page.setViewport({ width: 1920, height: 1080 }));
+    yield* this.logInfo("navigating...");
     yield* astralOp("", "load", () => page.goto(pageUrl, { waitUntil: "domcontentloaded" }));
     function* waitForSelector(sel) {
         yield* astralOp(sel, "waitForSelector", () => page.waitForSelector(sel, { timeout: 120000 }));
@@ -52,9 +49,7 @@ function* getEventDataImpl() {
     }
     function* innerHtml(arg1, arg2) {
         const sel = typeof arg1 === "string" ? arg1 : "";
-        const selHandle = typeof arg1 !== "string"
-            ? Promise.resolve(arg1)
-            : (arg2 || page).$(sel);
+        const selHandle = typeof arg1 !== "string" ? Promise.resolve(arg1) : (arg2 || page).$(sel);
         return yield* astralOp(sel, "innerHtml", () => selHandle
             .then((l) => l.getProperty("innerHTML"))
             .then((prop) => prop.jsonValue())
@@ -70,13 +65,13 @@ function* getEventDataImpl() {
             .evaluate((e, at) => e.getAttribute(at), attribute)
             .then((l) => l));
     }
-    yield* $.xLog("wait for sel :: config");
+    yield* this.logInfo("wait for sel :: config");
     yield* waitForSelector(".redesigned-meta-list .item .text");
-    yield* $.xLog("wait for sel :: title");
+    yield* this.logInfo("wait for sel :: title");
     yield* waitForSelector(".title #title");
-    yield* $.xLog("wait for sel :: match-player");
+    yield* this.logInfo("wait for sel :: match-player");
     yield* waitForSelector(".bracket-svg .match .match--player");
-    yield* $.xLog("extract data");
+    yield* this.logInfo("extract data");
     let isDE = false;
     let nameRes = $.Err(T.H2HError.MissingData("event.name"));
     let dateRes = $.Err(T.H2HError.MissingData("event.date"));
@@ -208,9 +203,8 @@ function* getEventDataImpl() {
         }
         const slotName = (slot) => entrants[slotEntrantId(slot)]?.participants[0]?.name;
         const slotScore = (slot) => slot.score === undefined ? "" : `${slotName(slot)} ${slot.score}`;
-        slots.forEach((slot) => (slot.displayScore = slot.score === undefined
-            ? undefined
-            : `${slot.score}`));
+        slots.forEach((slot) => (slot.displayScore =
+            slot.score === undefined ? undefined : `${slot.score}`));
         slots.forEach((slot) => (slot.playerId = entrants[slotEntrantId(slot)]?.player.id));
         const fullSet = {
             ...baseSet,
@@ -338,14 +332,14 @@ function* getEventDataImpl() {
             },
         ],
     };
-}
+});
 const getEventData = function* (...args) {
     const res = yield* U.adaptBuilder(getEventDataImpl)(...args);
     const fullOpts = { ...args[1].baseOpts, ...(args[2] || {}) };
     const cachePath = fullOpts.cachePath;
     if (cachePath && res.state === "COMPLETED") {
         const cacheFilePath = path.join(cachePath, `${res.id}.json`);
-        yield* $.xWait(() => fs.writeFilep(cacheFilePath, JSON.stringify(res)), (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))));
+        yield* $.xAwait(() => fs.writeFilep(cacheFilePath, JSON.stringify(res)), (e) => $.Err(T.H2HError.FetchError(GQL.Error.CacheWriteError(e))));
     }
     return res;
 };

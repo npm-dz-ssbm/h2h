@@ -343,7 +343,7 @@ export type GGHasPageNodes = {
 export type H2HBuilder<Res = void> = $.Xa<
   Res,
   H2HError,
-  { reads: { client: GQL.Client; opts: GQL.Opts; slug: string } }
+  { r: { client: GQL.Client; opts: GQL.Opts; slug: string } }
 >;
 
 export type GetFn = (

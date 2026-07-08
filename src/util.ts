@@ -18,7 +18,7 @@ export function* ggQueryAll<
     () => 0,
   );
   function q() {
-    return $.xIntercept(
+    return $.xCatch(
       client.operate(op, { ...constVars, ...pageVars }, opts),
       (e) => $.Err(T.H2HError.FetchError(e)),
     );
@@ -53,9 +53,9 @@ export function* ggQueryAll<
 }
 
 export function adaptBuilder(b: () => T.H2HBuilder<T.H2HEvent>): T.GetFn {
-  return function (s, c, o = {}) {
-    return $.xReads({ slug: s, client: c, opts: o }, b);
-  };
+  return $.FnX(function (s, c, o = {}) {
+    return this.reading({ slug: s, client: c, opts: o }, b());
+  });
 }
 
 export function asNum(id: string | number | undefined): number {

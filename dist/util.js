@@ -3,7 +3,7 @@ import * as T from "./types.js";
 export function* ggQueryAll(client, op, constVars, pvSpecs, opts = {}) {
     const pageVars = $.mapValues(pvSpecs, () => 0);
     function q() {
-        return $.xIntercept(client.operate(op, { ...constVars, ...pageVars }, opts), (e) => $.Err(T.H2HError.FetchError(e)));
+        return $.xCatch(client.operate(op, { ...constVars, ...pageVars }, opts), (e) => $.Err(T.H2HError.FetchError(e)));
     }
     const data = yield* q();
     const pageVarEntries = Object.entries(pvSpecs);
@@ -34,9 +34,9 @@ export function* ggQueryAll(client, op, constVars, pvSpecs, opts = {}) {
     return data;
 }
 export function adaptBuilder(b) {
-    return function (s, c, o = {}) {
-        return $.xReads({ slug: s, client: c, opts: o }, b);
-    };
+    return $.FnX(function (s, c, o = {}) {
+        return this.reading({ slug: s, client: c, opts: o }, b());
+    });
 }
 export function asNum(id) {
     if (!id) {

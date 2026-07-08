@@ -240,7 +240,7 @@ export type GGHasPageNodes = {
     }[];
 };
 export type H2HBuilder<Res = void> = $.Xa<Res, H2HError, {
-    reads: {
+    r: {
         client: GQL.Client;
         opts: GQL.Opts;
         slug: string;
