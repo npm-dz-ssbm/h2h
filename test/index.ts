@@ -1,5 +1,5 @@
 import * as $ from "@dz-ssbm/util";
-import * as H2H from "../src/index.js";
+import * as H2H from "../src/node-index.js";
 
 async function main() {
   const client = H2H.Client({

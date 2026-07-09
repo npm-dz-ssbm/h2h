@@ -36,13 +36,23 @@ const getEventDataImpl: () => U.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
     op: string,
     m: () => Promise<R>,
   ): U.H2HBuilder<R> {
-    return $.xAwait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
+    return $.xAwait(m, (e) => {
+      console.log(e);
+      return $.Err(T.H2HError.AstralError({ sel, op }));
+    });
   }
 
   const userAgent =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
   const browser = yield* astralOp("", "launch", () =>
-    puppeteer.launch({ args: [`--user-agent=${userAgent}`] }),
+    puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH!,
+      args: [
+        `--user-agent=${userAgent}`,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+      ],
+    }),
   );
   const pageUrl = `https://challonge.com/${slug}`;
   yield* this.logInfo("opening Page...");
