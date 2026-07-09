@@ -1,6 +1,6 @@
 import * as $ from "@dz-ssbm/util";
-import * as GQL from "@dz-ssbm/gql";
-import * as T from "./types.js";
+import * as GQL from "@dz-ssbm/gql/node";
+import * as T from "./T.js";
 import { default as sets } from "./queries/setsData.gql.js";
 import { default as tourneysSmall } from "./queries/tournamentDataSmall.gql.js";
 import { default as tourneys } from "./queries/tournamentData.gql.js";

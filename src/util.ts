@@ -1,6 +1,18 @@
 import * as $ from "@dz-ssbm/util";
-import type * as GQL from "@dz-ssbm/gql/T";
-import * as T from "./types.js";
+import type * as GQL from "@dz-ssbm/gql/node";
+import * as T from "./T.js";
+
+export type H2HBuilder<Res = void> = $.Xa<
+  Res,
+  T.H2HError,
+  { r: { client: GQL.Client; opts: GQL.Opts; slug: string } }
+>;
+
+export type GetFn = (
+  slug: string,
+  client: GQL.Client,
+  opts?: GQL.Opts,
+) => $.Xa<T.H2HEvent, T.H2HError>;
 
 export function* ggQueryAll<
   Res extends GQL.ResType,
@@ -12,7 +24,7 @@ export function* ggQueryAll<
   constVars: CV,
   pvSpecs: PV,
   opts: GQL.Opts = {},
-): T.H2HBuilder<Res> {
+): H2HBuilder<Res> {
   const pageVars: $.WithAllPropertiesAs<PV, number> = $.mapValues(
     pvSpecs,
     () => 0,
@@ -52,7 +64,7 @@ export function* ggQueryAll<
   return data;
 }
 
-export const adaptBuilder: (b: () => T.H2HBuilder<T.H2HEvent>) => T.GetFn =
+export const adaptBuilder: (b: () => H2HBuilder<T.H2HEvent>) => GetFn =
   (b) =>
   (s, c, o = {}) =>
     $.xReading({ slug: s, client: c, opts: o }, b());

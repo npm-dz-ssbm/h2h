@@ -2,10 +2,10 @@ import puppeteer, { ElementHandle, Page } from "puppeteer";
 import { fs, path } from "@dz-ssbm/sys";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
-import * as T from "../types.js";
+import * as T from "../T.js";
 import * as U from "../util.js";
 
-const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
+const getEventDataImpl: () => U.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
   const { client, opts, slug } = yield* this.ask;
   const fullOpts = Object.assign({}, client.baseOpts, opts);
   const cachePath = fullOpts.cachePath;
@@ -35,7 +35,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
     sel: string,
     op: string,
     m: () => Promise<R>,
-  ): T.H2HBuilder<R> {
+  ): U.H2HBuilder<R> {
     return $.xAwait(m, () => $.Err(T.H2HError.AstralError({ sel, op })));
   }
 
@@ -53,7 +53,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
     page.goto(pageUrl, { waitUntil: "domcontentloaded" }),
   );
 
-  function* waitForSelector(sel: string): T.H2HBuilder {
+  function* waitForSelector(sel: string): U.H2HBuilder {
     yield* astralOp(sel, "waitForSelector", () =>
       page.waitForSelector(sel, { timeout: 120000 }),
     );
@@ -70,7 +70,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
   function* innerText(
     sel: string,
     el: ElementHandle | Page = page,
-  ): T.H2HBuilder<string> {
+  ): U.H2HBuilder<string> {
     return yield* astralOp(sel, "innerText", () =>
       el
         .$(sel)
@@ -82,7 +82,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
   function* innerHtml(
     arg1: string | ElementHandle,
     arg2?: ElementHandle,
-  ): T.H2HBuilder<string> {
+  ): U.H2HBuilder<string> {
     const sel: string = typeof arg1 === "string" ? arg1 : "";
     const selHandle: Promise<ElementHandle | null> =
       typeof arg1 !== "string" ? Promise.resolve(arg1) : (arg2 || page).$(sel);
@@ -102,7 +102,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
   function* getAttribute(
     attribute: string,
     el: ElementHandle,
-  ): T.H2HBuilder<string> {
+  ): U.H2HBuilder<string> {
     return yield* astralOp(attribute, "getAttribute", () =>
       el
         .evaluate((e: any, at: string) => e.getAttribute(at), attribute)
@@ -418,7 +418,7 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
   };
 });
 
-const getEventData: T.GetFn = function* (...args) {
+const getEventData: U.GetFn = function* (...args) {
   const res = yield* U.adaptBuilder(getEventDataImpl)(...args);
   const fullOpts = { ...args[1].baseOpts, ...(args[2] || {}) };
   const cachePath = fullOpts.cachePath;

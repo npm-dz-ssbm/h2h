@@ -1,10 +1,10 @@
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
 import * as Q from "../queries.js";
-import * as T from "../types.js";
+import * as T from "../T.js";
 import * as U from "../util.js";
 
-const getBaseGGEventData: () => T.H2HBuilder<Q.TourneyOpData> = $.FnX(
+const getBaseGGEventData: () => U.H2HBuilder<Q.TourneyOpData> = $.FnX(
   function* () {
     const { client, opts, slug } = yield* this.ask;
     function getEventData(op: Q.TourneyOp, nwc?: GQL.NetworkControl) {
@@ -24,7 +24,7 @@ const getBaseGGEventData: () => T.H2HBuilder<Q.TourneyOpData> = $.FnX(
   },
 );
 
-const getSetsData: (id: number) => T.H2HBuilder<Q.SetsOpData["phaseGroup"]> =
+const getSetsData: (id: number) => U.H2HBuilder<Q.SetsOpData["phaseGroup"]> =
   $.FnX(function* (id) {
     const { client, opts } = yield* this.ask;
     const pageSpecs = { page: (d: Q.SetsOpData) => d.phaseGroup.sets };
@@ -33,7 +33,7 @@ const getSetsData: (id: number) => T.H2HBuilder<Q.SetsOpData["phaseGroup"]> =
     return data.phaseGroup;
   });
 
-function* getGGEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
+function* getGGEventDataImpl(): U.H2HBuilder<T.H2HEvent> {
   const { event } = yield* getBaseGGEventData();
 
   const entrants: Record<string | number, T.H2HEntrant> = {};
@@ -104,8 +104,7 @@ function* getGGEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
   for (const phaseGroup of eventPhaseGroups) {
     const setsById: Record<string | number, T.H2HSet> = {};
     const { id: phaseGroupId, phase, displayIdentifier } = phaseGroup;
-    const { bracketType, sets } = yield* getSetsData(phaseGroupId);
-    console.log(phaseGroup, bracketType, sets);
+    const { sets } = yield* getSetsData(phaseGroupId);
     for (const set of sets.nodes) {
       const hasWinner = !!set.winnerId;
       const isDQ = set.displayScore === "DQ";
@@ -202,5 +201,5 @@ function* getGGEventDataImpl(): T.H2HBuilder<T.H2HEvent> {
   };
 }
 
-const getGGEventData: T.GetFn = U.adaptBuilder(getGGEventDataImpl);
+const getGGEventData: U.GetFn = U.adaptBuilder(getGGEventDataImpl);
 export default getGGEventData;

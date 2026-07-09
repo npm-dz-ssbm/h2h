@@ -1,5 +1,5 @@
 import * as $ from "@dz-ssbm/util";
-import * as GQL from "@dz-ssbm/gql/T";
+import * as GQL from "@dz-ssbm/gql";
 
 export const H2HError = $.T.defVariant("@dz-ssbm/h2h|H2HError", {
   FetchError: GQL.Error.zodType,
@@ -233,7 +233,7 @@ export const H2HTournament = $.T.object({
 });
 export type H2HTournament = $.T.infer<typeof H2HTournament>;
 
-const H2HEvent = $.T.object({
+export const H2HEvent = $.T.object({
   id: IdType,
   bracketingSite: $.T.literal(["startgg", "challonge"]),
   tournamentName: $.T.string(),
@@ -253,18 +253,6 @@ export type GGHasPageNodes = {
   pageInfo: { total: number };
   nodes: { id: number }[];
 };
-
-export type H2HBuilder<Res = void> = $.Xa<
-  Res,
-  H2HError,
-  { r: { client: GQL.Client; opts: GQL.Opts; slug: string } }
->;
-
-export type GetFn = (
-  slug: string,
-  client: GQL.Client,
-  opts?: GQL.Opts,
-) => $.Xa<H2HEvent, H2HError>;
 
 export const H2HEventSource = $.T.object({
   bracketingSite: $.T.literal(["startgg", "challonge"]),
