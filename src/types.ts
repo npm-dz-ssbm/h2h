@@ -1,16 +1,7 @@
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql/T";
 
-export const H2HError: $.T.VariantDef<
-  "@dz-ssbm/h2h|H2HError",
-  {
-    FetchError: $.T.zodType<GQL.Error>;
-    AstralError: $.T.ZodObject<{ sel: $.T.ZodString; op: $.T.ZodString }>;
-    MissingData: $.T.ZodString;
-    EventBuildError: $.T.ZodUnknown;
-    ParseCached: $.T.ZodUnknown;
-  }
-> = $.T.defVariant("@dz-ssbm/h2h|H2HError", {
+export const H2HError = $.T.defVariant("@dz-ssbm/h2h|H2HError", {
   FetchError: GQL.Error.zodType,
   AstralError: $.T.object({ sel: $.T.string(), op: $.T.string() }),
   MissingData: $.T.string(),
@@ -19,19 +10,16 @@ export const H2HError: $.T.VariantDef<
 });
 export type H2HError = $.T.inferDefined<typeof H2HError>;
 
-const EntrantStub: $.T.ZodObject<{ id: $.T.ZodNumber }> = $.T.object({
+const EntrantStub = $.T.object({
   id: $.T.number(),
 });
-const ImagesStub: $.T.ZodArray<
-  $.T.ZodObject<{ url: $.T.ZodString; type: $.T.ZodString }>
-> = $.T.array(
+const ImagesStub = $.T.array(
   $.T.object({
     url: $.T.string(),
     type: $.T.string(),
   }),
 );
-export type ZodIdType = $.T.ZodUnion<[$.T.ZodNumber, $.T.ZodString]>;
-export const IdType: ZodIdType = $.T.union([$.T.number(), $.T.string()]);
+export const IdType = $.T.union([$.T.number(), $.T.string()]);
 function GGPageNodes<D extends Record<string, $.T.ZodType>>(d: D) {
   return $.T.object({
     pageInfo: $.T.object({
@@ -156,15 +144,7 @@ export const PhaseGroupSets = $.T.object({
 export type PhaseGroupSets = $.T.infer<typeof PhaseGroupSets>;
 export type TournamentEvent = $.T.infer<typeof TournamentEvent>;
 
-type ZodNullish<T extends $.T.ZodType> = $.T.ZodOptional<$.T.ZodNullable<T>>;
-
-export const H2HPlayer: $.T.ZodObject<{
-  id: ZodIdType;
-  gamerTag: $.T.ZodString;
-  name: $.T.ZodString;
-  prefix: ZodNullish<$.T.ZodString>;
-  pronouns: ZodNullish<$.T.ZodString>;
-}> = $.T.object({
+export const H2HPlayer = $.T.object({
   id: IdType,
   gamerTag: $.T.string(),
   name: $.T.string(),
@@ -173,13 +153,7 @@ export const H2HPlayer: $.T.ZodObject<{
 });
 export type H2HPlayer = $.T.infer<typeof H2HPlayer>;
 
-export const H2HRank: $.T.ZodObject<{
-  player: typeof H2HPlayer;
-  wins: $.T.ZodNumber;
-  losses: $.T.ZodNumber;
-  events: $.T.ZodNumber;
-  rating: ZodNullish<$.T.ZodNumber>;
-}> = $.T.object({
+export const H2HRank = $.T.object({
   player: H2HPlayer,
   wins: $.T.number(),
   losses: $.T.number(),
@@ -188,13 +162,7 @@ export const H2HRank: $.T.ZodObject<{
 });
 export type H2HRank = $.T.infer<typeof H2HRank>;
 
-export const H2HParticipant: $.T.ZodObject<{
-  id: ZodIdType;
-  gamerTag: $.T.ZodString;
-  name: $.T.ZodString;
-  prefix: ZodNullish<$.T.ZodString>;
-  player: typeof H2HPlayer;
-}> = $.T.object({
+export const H2HParticipant = $.T.object({
   id: IdType,
   gamerTag: $.T.string(),
   name: $.T.string(),
@@ -203,21 +171,13 @@ export const H2HParticipant: $.T.ZodObject<{
 });
 export type H2HParticipant = $.T.infer<typeof H2HParticipant>;
 
-export const H2HStanding: $.T.ZodObject<{
-  placement: $.T.ZodNumber;
-  isFinal: $.T.ZodBoolean;
-}> = $.T.object({
+export const H2HStanding = $.T.object({
   placement: $.T.number(),
   isFinal: $.T.boolean(),
 });
 export type H2HStanding = $.T.infer<typeof H2HStanding>;
 
-export const H2HEntrant: $.T.ZodObject<{
-  id: ZodIdType;
-  player: typeof H2HPlayer;
-  participants: $.T.ZodArray<typeof H2HParticipant>;
-  standing: typeof H2HStanding;
-}> = $.T.object({
+export const H2HEntrant = $.T.object({
   id: IdType,
   player: H2HPlayer,
   participants: $.T.array(H2HParticipant),
@@ -225,23 +185,14 @@ export const H2HEntrant: $.T.ZodObject<{
 });
 export type H2HEntrant = $.T.infer<typeof H2HEntrant>;
 
-export const H2HPhase: $.T.ZodObject<{
-  id: ZodIdType;
-  name: $.T.ZodString;
-  phaseOrder: $.T.ZodNumber;
-}> = $.T.object({
+export const H2HPhase = $.T.object({
   id: IdType,
   name: $.T.string(),
   phaseOrder: $.T.number(),
 });
 export type H2HPhase = $.T.infer<typeof H2HPhase>;
 
-export const H2HSlot: $.T.ZodObject<{
-  entrant: ZodNullish<$.T.ZodObject<{ id: ZodIdType }>>;
-  score: ZodNullish<$.T.ZodNumber>;
-  displayScore: ZodNullish<$.T.ZodString>;
-  playerId: ZodNullish<ZodIdType>;
-}> = $.T.object({
+export const H2HSlot = $.T.object({
   entrant: $.T.object({ id: IdType }).nullish(),
   score: $.T.nullish($.T.number()),
   displayScore: $.T.nullish($.T.string()),
@@ -249,21 +200,7 @@ export const H2HSlot: $.T.ZodObject<{
 });
 export type H2HSlot = $.T.infer<typeof H2HSlot>;
 
-export const H2HSet: $.T.ZodObject<{
-  id: ZodIdType;
-  displayScore: $.T.ZodString;
-  fullRoundText: ZodNullish<$.T.ZodString>;
-  round: $.T.ZodNumber;
-  depth: $.T.ZodNumber;
-  isLosers: $.T.ZodBoolean;
-  isDropRound: $.T.ZodBoolean;
-  isGrands: $.T.ZodBoolean;
-  isBye: $.T.ZodBoolean;
-  isDQ: $.T.ZodBoolean;
-  doesCount: $.T.ZodBoolean;
-  winnerId: ZodNullish<ZodIdType>;
-  slots: $.T.ZodArray<typeof H2HSlot>;
-}> = $.T.object({
+export const H2HSet = $.T.object({
   id: IdType,
   displayScore: $.T.string(),
   fullRoundText: $.T.string().nullish(),
@@ -280,12 +217,7 @@ export const H2HSet: $.T.ZodObject<{
 });
 export type H2HSet = $.T.infer<typeof H2HSet>;
 
-export const H2HPhaseGroup: $.T.ZodObject<{
-  id: ZodIdType;
-  phase: typeof H2HPhase;
-  displayIdentifier: $.T.ZodString;
-  sets: $.T.ZodRecord<ZodIdType, typeof H2HSet>;
-}> = $.T.object({
+export const H2HPhaseGroup = $.T.object({
   id: IdType,
   phase: H2HPhase,
   displayIdentifier: $.T.string(),
@@ -293,12 +225,7 @@ export const H2HPhaseGroup: $.T.ZodObject<{
 });
 export type H2HPhaseGroup = $.T.infer<typeof H2HPhaseGroup>;
 
-export const H2HTournament: $.T.ZodObject<{
-  id: ZodIdType;
-  name: $.T.ZodString;
-  endAt: $.T.ZodNumber;
-  images: typeof ImagesStub;
-}> = $.T.object({
+export const H2HTournament = $.T.object({
   id: IdType,
   name: $.T.string(),
   endAt: $.T.number(),
@@ -306,20 +233,7 @@ export const H2HTournament: $.T.ZodObject<{
 });
 export type H2HTournament = $.T.infer<typeof H2HTournament>;
 
-export const H2HEvent: $.T.ZodObject<{
-  id: ZodIdType;
-  bracketingSite: $.T.ZodLiteral<"startgg" | "challonge">;
-  tournamentName: $.T.ZodString;
-  name: $.T.ZodString;
-  slug: $.T.ZodString;
-  state: $.T.ZodString;
-  date: $.T.ZodNumber;
-  imageUrl: ZodNullish<$.T.ZodString>;
-  entrants: $.T.ZodRecord<ZodIdType, typeof H2HEntrant>;
-  phaseGroups: $.T.ZodArray<typeof H2HPhaseGroup>;
-  numEntrants: $.T.ZodNumber;
-  tournament: typeof H2HTournament;
-}> = $.T.object({
+const H2HEvent = $.T.object({
   id: IdType,
   bracketingSite: $.T.literal(["startgg", "challonge"]),
   tournamentName: $.T.string(),
@@ -352,10 +266,7 @@ export type GetFn = (
   opts?: GQL.Opts,
 ) => $.Xa<H2HEvent, H2HError>;
 
-export const H2HEventSource: $.T.ZodObject<{
-  bracketingSite: $.T.ZodLiteral<"startgg" | "challonge">;
-  slug: $.T.ZodString;
-}> = $.T.object({
+export const H2HEventSource = $.T.object({
   bracketingSite: $.T.literal(["startgg", "challonge"]),
   slug: $.T.string(),
 });

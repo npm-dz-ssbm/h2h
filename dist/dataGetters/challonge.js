@@ -2,7 +2,6 @@ import puppeteer, { ElementHandle, Page } from "puppeteer";
 import { fs, path } from "@dz-ssbm/sys";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
-import {} from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
 const getEventDataImpl = $.FnX(function* () {
@@ -35,12 +34,12 @@ const getEventDataImpl = $.FnX(function* () {
     function* waitForSelector(sel) {
         yield* astralOp(sel, "waitForSelector", () => page.waitForSelector(sel, { timeout: 120000 }));
     }
-    function* $$(sel, el = page) {
+    const $$ = this.fn(function* (sel, el = page) {
         return yield* astralOp(sel, "$$", () => el.$$(sel));
-    }
-    function* $1(sel, el = page) {
+    });
+    const $1 = this.fn(function* (sel, el = page) {
         return yield* astralOp(sel, "$", () => el.$(sel).then((e) => e));
-    }
+    });
     function* innerText(sel, el = page) {
         return yield* astralOp(sel, "innerText", () => el
             .$(sel)

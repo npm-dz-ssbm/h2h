@@ -52,11 +52,10 @@ export function* ggQueryAll<
   return data;
 }
 
-export function adaptBuilder(b: () => T.H2HBuilder<T.H2HEvent>): T.GetFn {
-  return $.FnX(function (s, c, o = {}) {
-    return this.reading({ slug: s, client: c, opts: o }, b());
-  });
-}
+export const adaptBuilder: (b: () => T.H2HBuilder<T.H2HEvent>) => T.GetFn =
+  (b) =>
+  (s, c, o = {}) =>
+    $.xReading({ slug: s, client: c, opts: o }, b());
 
 export function asNum(id: string | number | undefined): number {
   if (!id) {

@@ -33,11 +33,7 @@ export function* ggQueryAll(client, op, constVars, pvSpecs, opts = {}) {
     }
     return data;
 }
-export function adaptBuilder(b) {
-    return $.FnX(function (s, c, o = {}) {
-        return this.reading({ slug: s, client: c, opts: o }, b());
-    });
-}
+export const adaptBuilder = (b) => (s, c, o = {}) => $.xReading({ slug: s, client: c, opts: o }, b());
 export function asNum(id) {
     if (!id) {
         return 0;

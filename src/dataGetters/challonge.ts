@@ -2,7 +2,6 @@ import puppeteer, { ElementHandle, Page } from "puppeteer";
 import { fs, path } from "@dz-ssbm/sys";
 import * as $ from "@dz-ssbm/util";
 import * as GQL from "@dz-ssbm/gql";
-import { type Client as GQLClient } from "@dz-ssbm/gql/T";
 import * as T from "../types.js";
 import * as U from "../util.js";
 
@@ -60,19 +59,13 @@ const getEventDataImpl: () => T.H2HBuilder<T.H2HEvent> = $.FnX(function* () {
     );
   }
 
-  function* $$(
-    sel: string,
-    el: ElementHandle | Page = page,
-  ): T.H2HBuilder<ElementHandle[]> {
+  const $$ = this.fn(function* (sel: string, el: ElementHandle | Page = page) {
     return yield* astralOp(sel, "$$", () => el.$$(sel));
-  }
+  });
 
-  function* $1(
-    sel: string,
-    el: ElementHandle | Page = page,
-  ): T.H2HBuilder<ElementHandle> {
+  const $1 = this.fn(function* (sel: string, el: ElementHandle | Page = page) {
     return yield* astralOp(sel, "$", () => el.$(sel).then((e) => e!));
-  }
+  });
 
   function* innerText(
     sel: string,
